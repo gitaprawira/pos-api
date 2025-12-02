@@ -444,8 +444,6 @@ scrape_configs:
       - targets: ['localhost:8080']
 ```
 
-For detailed logging documentation, see [LOGGING_GUIDE.md](LOGGING_GUIDE.md).
-
 ## 🛠️ Development
 
 ### Running Tests
