@@ -27,13 +27,57 @@ server:
   port: 8080
 
 jwt:
-  secret-key: ${secret-key}
-  expiration: ${expiration}
+  secret-key: ${JWT_SECRET_KEY:defaultSecretKey}
+  expiration: 3600000 # 1 hour in milliseconds
+
+# Actuator & Prometheus Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,loggers
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: ${ENVIRONMENT:dev}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
 
 logging:
   level:
-    org:
-      springframework:
-        web: DEBUG
-        boot:
-          autoconfigure: DEBUG
+    com.soloware.pos: DEBUG
+    org.springframework.web: INFO
+    org.springframework.security: INFO
+    org.springframework.data: INFO
+    org.springframework.boot: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %highlight(%-5level) %cyan(%logger{36}) - %msg %n"
+  file:
+    name: logs/application.log
+  logback:
+    rolling policy:
+      max-history: 30
+      total-size-cap: 10GB
+      max-file-size: 100MB

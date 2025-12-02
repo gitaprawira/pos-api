@@ -6,12 +6,12 @@ A production-ready Point of Sale (POS) system backend built with Spring Boot 4.0
 
 - [Quick Start](#-quick-start)
 - [Features](#-features)
-- [Architecture](#-architecture)
+- [Architecture](#️-architecture)
 - [API Endpoints](#-api-endpoints)
 - [Security Configuration](#-security-configuration)
-- [Database Schema](#-database-schema)
-- [Error Handling](#-error-handling)
-- [Development](#-development)
+- [Database Schema](#️-database-schema)
+- [Error Handling](#️-error-handling)
+- [Development](#️-development)
 - [Best Practices](#-best-practices-implemented)
 
 ## 🚀 Quick Start
@@ -24,13 +24,13 @@ A production-ready Point of Sale (POS) system backend built with Spring Boot 4.0
 
 ### Setup & Run
 
-1. **Install Java 25 JDK** (if not already installed):
+1.**Install Java 25 JDK** (if not already installed):
 
 ```bash
 sudo apt install openjdk-25-jdk-headless
 ```
 
-2. **Create PostgreSQL database**:
+2.**Create PostgreSQL database**:
 
 ```sql
 CREATE DATABASE pos_db;
@@ -38,7 +38,7 @@ CREATE USER pos_user WITH PASSWORD 'mysecretpassword';
 GRANT ALL PRIVILEGES ON DATABASE pos_db TO pos_user;
 ```
 
-3. **Update `application.yml`** if needed:
+3.**Update `application.yml`** if needed:
 
 ```yaml
 spring:
@@ -48,7 +48,7 @@ spring:
     password: mysecretpassword
 ```
 
-4. **Run the application**:
+4.**Run the application**:
 
 ```bash
 ./start.sh
@@ -91,6 +91,10 @@ Once the application is running, visit:
 ✅ **API documentation** with Swagger/OpenAPI 3  
 ✅ **Method-level security** with `@PreAuthorize`  
 ✅ **Password encryption** using BCrypt  
+✅ **Structured logging** with Logstash for ELK stack  
+✅ **Application metrics** exposed via Prometheus  
+✅ **Request tracing** with unique request IDs (MDC)  
+✅ **Health checks** via Spring Boot Actuator  
 
 ## 🏗️ Architecture
 
@@ -103,12 +107,15 @@ Once the application is running, visit:
 - **API Documentation**: Swagger/OpenAPI 3
 - **Build Tool**: Maven
 - **Code Quality**: Lombok for boilerplate reduction
+- **Logging**: SLF4J/Logback with Logstash encoder
+- **Monitoring**: Micrometer, Prometheus, Spring Boot Actuator
+- **Observability**: Structured JSON logging with MDC context
 
-### Architecture Pattern
+### Project Structure
 
 The project follows a **vertical slice architecture** pattern:
 
-```
+```text
 com.soloware.pos/
 ├── config/             # Configuration classes
 │   ├── SecurityConfig.java
@@ -117,7 +124,6 @@ com.soloware.pos/
 │   └── CorsConfig.java
 ├── core/               # Core utilities and shared components
 │   ├── annotation/     # Custom annotations (@CurrentUser, @AuthCheck)
-│   ├── constant/       # HTTP constants
 │   ├── enums/          # Global enums (Role)
 │   ├── exception/      # Global exception handler
 │   ├── interceptor/    # JWT authentication filter
@@ -363,6 +369,82 @@ The API uses a global exception handler that returns consistent error responses:
 | `403` | Forbidden (insufficient permissions) |
 | `404` | Not Found |
 | `500` | Internal Server Error |
+
+## 📊 Logging & Monitoring
+
+### Logging Infrastructure
+
+The application implements enterprise-grade logging with:
+
+- **SLF4J + Logback**: Logging framework
+- **Logstash Encoder**: JSON-formatted logs for ELK stack
+- **MDC (Mapped Diagnostic Context)**: Request context enrichment
+- **Async Logging**: Non-blocking I/O for performance
+
+### Key Features
+
+- **Structured JSON logs** exported to Logstash (port 5000)
+- **Request tracing** with unique `requestId` per request
+- **User activity tracking** with `username` and `userId` in logs
+- **Performance monitoring** with request duration tracking
+- **Automatic log rotation** (100MB per file, 30-day retention)
+
+### Actuator Endpoints
+
+Access monitoring endpoints at `http://localhost:8080/actuator`:
+
+- `/actuator/health` - Application health status
+- `/actuator/metrics` - Available metrics
+- `/actuator/prometheus` - Prometheus metrics export
+- `/actuator/loggers` - View/modify log levels at runtime
+
+### Example: Change Log Level at Runtime
+
+```bash
+# Set log level to DEBUG for debugging
+curl -X POST http://localhost:8080/actuator/loggers/com.soloware.pos \
+  -H "Content-Type: application/json" \
+  -d '{"configuredLevel": "DEBUG"}'
+
+# Reset to INFO
+curl -X POST http://localhost:8080/actuator/loggers/com.soloware.pos \
+  -H "Content-Type: application/json" \
+  -d '{"configuredLevel": "INFO"}'
+```
+
+### Log Files
+
+- **Console**: Human-readable logs for development
+- **Application Log**: `logs/application.log` (standard format)
+- **Logstash Log**: `logs/logstash.json` (JSON format for ELK)
+
+### MDC Context Fields
+
+Every log entry includes:
+
+- `requestId` - Unique request identifier
+- `username` - Authenticated user
+- `userId` - User ID
+- `ipAddress` - Client IP address
+- `endpoint` - Request URI
+- `httpMethod` - HTTP method
+- `httpStatus` - Response status
+- `duration` - Request processing time (ms)
+
+### Prometheus/Grafana Integration
+
+The application exposes metrics for Prometheus scraping:
+
+```yaml
+# prometheus.yml
+scrape_configs:
+  - job_name: 'pos-api'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['localhost:8080']
+```
+
+For detailed logging documentation, see [LOGGING_GUIDE.md](LOGGING_GUIDE.md).
 
 ## 🛠️ Development
 

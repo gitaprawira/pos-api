@@ -2,6 +2,7 @@ package com.soloware.pos.core.resolver;
 
 import com.soloware.pos.core.annotation.CurrentUser;
 import com.soloware.pos.modules.auth.entity.UserEntity;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.core.MethodParameter;
 import org.springframework.security.core.Authentication;
@@ -23,9 +24,9 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
 
     @Override
     public @Nullable Object resolveArgument(
-            MethodParameter parameter,
+            @NonNull MethodParameter parameter,
             @Nullable ModelAndViewContainer mavContainer,
-            NativeWebRequest webRequest,
+            @NonNull NativeWebRequest webRequest,
             @Nullable WebDataBinderFactory binderFactory
     ) throws Exception {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
