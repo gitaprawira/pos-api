@@ -3,10 +3,7 @@ package com.soloware.pos.modules.auth.controller;
 import com.soloware.pos.core.annotation.AuthCheck;
 import com.soloware.pos.core.annotation.CurrentUser;
 import com.soloware.pos.core.utils.ApiResponse;
-import com.soloware.pos.modules.auth.dto.AuthResponseDTO;
-import com.soloware.pos.modules.auth.dto.LoginRequestDTO;
-import com.soloware.pos.modules.auth.dto.RegisterRequestDTO;
-import com.soloware.pos.modules.auth.dto.UserDTO;
+import com.soloware.pos.modules.auth.dto.*;
 import com.soloware.pos.modules.auth.entity.UserEntity;
 import com.soloware.pos.modules.auth.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -70,5 +67,35 @@ public class AuthController {
         log.info("Current user retrieved: {} (ID: {})", user.getUsername(), user.getId());
         UserDTO userDTO = authService.getCurrentUser(user.getUsername());
         return ResponseEntity.ok(ApiResponse.success(userDTO));
+    }
+
+    @PostMapping("/refresh")
+    @Operation(summary = "Refresh access token", description = "Generate a new access token using a valid refresh token")
+    public ResponseEntity<ApiResponse<AuthResponseDTO>> refreshToken(@Valid @RequestBody RefreshTokenRequestDTO request) {
+        log.info("Refresh token request received");
+        try {
+            AuthResponseDTO response = authService.refreshToken(request);
+            log.info("Access token refreshed successfully for user: {}", response.username());
+            return ResponseEntity.ok(ApiResponse.success("Token refreshed successfully", response));
+        } catch (Exception e) {
+            log.error("Token refresh failed - Error: {}", e.getMessage());
+            throw e;
+        }
+    }
+
+    @PostMapping("/logout")
+    @AuthCheck
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(summary = "Logout user", description = "Logout the current user and revoke all refresh tokens")
+    public ResponseEntity<ApiResponse<Void>> logout(@Parameter(hidden = true) @CurrentUser UserEntity user) {
+        log.info("Logout request for username: {}", user.getUsername());
+        try {
+            authService.logout(user.getUsername());
+            log.info("User logged out successfully: {}", user.getUsername());
+            return ResponseEntity.ok(ApiResponse.success("Logged out successfully", null));
+        } catch (Exception e) {
+            log.error("Logout failed for username: {} - Error: {}", user.getUsername(), e.getMessage());
+            throw e;
+        }
     }
 }

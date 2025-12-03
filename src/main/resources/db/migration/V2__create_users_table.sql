@@ -20,4 +20,4 @@ CREATE INDEX idx_users_email ON users(email);
 
 -- Insert default admin user (password: admin123)
 INSERT INTO users (username, email, password, role, enabled, account_non_expired, account_non_locked, credentials_non_expired, created_at, updated_at)
-VALUES ('admin', 'admin@soloware.id', '$2a$10$8X5QzW9KqQY0Jh4xYZ5TZeP.HhZJ4L4n4vB8sR7YxKlWqLXnC4P3u', 'ADMIN', true, true, true, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+VALUES ('admin', 'admin@soloware.id', '$2a$10$pnx1UsCisEJrnd.Dzw1gw.DCT.BD4fgIhsEMr9WcoiMZPJ.BokCnC', 'ADMIN', true, true, true, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
